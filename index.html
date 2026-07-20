@@ -533,6 +533,7 @@
       </div>
     </div>
     <button class="capture-cta" id="captureBtn">📷 Chercher le monstre</button>
+    <button onclick="resetGame()">🔄 Réinitialiser</button>
     <div class="bag" id="bag"></div>
   </div>
 
@@ -582,7 +583,7 @@
       [47.89089034024769, 1.8243504678835756],
       [47.890811204397224, 1.824405453165701],
       [47.89078242769433, 1.8243169402725228],
-    
+
     ];
 
     // Centre moyen du polygone, utilisé pour centrer la carte.
@@ -700,7 +701,12 @@
     }));
 
     /* =========================== FIN DE LA CONFIG =========================== */
-
+    function resetGame() {
+      if (confirm("Réinitialiser la partie ?")) {
+        localStorage.removeItem("halloween_hunt_caught_v1");
+        location.reload();
+      }
+    }
     const STORAGE_KEY = "halloween_hunt_caught_v1";
     function loadCaught() {
       try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]")); }
