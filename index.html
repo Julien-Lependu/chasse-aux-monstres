@@ -1738,12 +1738,46 @@
       photoCanvas.style.display = 'none';
       photoVideo.style.display = 'block';
       takePhotoBtn.hidden = false;
+      takePhotoBtn.disabled = true;
+      takePhotoBtn.textContent = '📷 Préparation HD…';
       sharePhotoBtn.hidden = true;
+      photoBlob = null;
+
       try {
-        photoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'user' } }, audio: false });
+        if (!navigator.mediaDevices?.getUserMedia) throw new Error('Caméra indisponible');
+
+        photoStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: 'user' },
+            width: { ideal: 4096 },
+            height: { ideal: 3072 },
+            aspectRatio: { ideal: 4 / 3 },
+            frameRate: { ideal: 30, max: 30 }
+          },
+          audio: false
+        });
+
+        const track = photoStream.getVideoTracks()[0];
+        const capabilities = track.getCapabilities?.() || {};
+        const advanced = {};
+        if (capabilities.width?.max) advanced.width = capabilities.width.max;
+        if (capabilities.height?.max) advanced.height = capabilities.height.max;
+        if (Object.keys(advanced).length) {
+          try { await track.applyConstraints({ advanced: [advanced] }); }
+          catch (error) { console.info('Résolution maximale non applicable', error); }
+        }
+
         photoVideo.srcObject = photoStream;
         await photoVideo.play();
+        await new Promise(resolve => {
+          if (photoVideo.readyState >= 2 && photoVideo.videoWidth) return resolve();
+          photoVideo.addEventListener('loadedmetadata', resolve, { once: true });
+        });
+
+        takePhotoBtn.disabled = false;
+        takePhotoBtn.textContent = '📷 Prendre la photo HD';
       } catch (error) {
+        console.warn('Caméra selfie indisponible', error);
         showToast('Caméra selfie indisponible. Vérifie son autorisation.');
         closePhotoBooth();
       }
@@ -1761,20 +1795,104 @@
     }
 
     async function takeSouvenirPhoto() {
-      const vw = photoVideo.videoWidth, vh = photoVideo.videoHeight;
-      if (!vw || !vh) return;
-      const canvas = photoCanvas, ctx = canvas.getContext('2d');
-      canvas.width = vw; canvas.height = vh;
-      ctx.save(); ctx.translate(vw, 0); ctx.scale(-1, 1); ctx.drawImage(photoVideo, 0, 0, vw, vh); ctx.restore();
-      const scale = Math.max(1, vw / 600);
-      ctx.strokeStyle = 'rgba(255,138,43,.92)'; ctx.lineWidth = 14 * scale; ctx.strokeRect(7 * scale, 7 * scale, vw - 14 * scale, vh - 14 * scale);
-      ctx.textAlign = 'center'; ctx.shadowColor = 'black'; ctx.shadowBlur = 8 * scale;
-      ctx.fillStyle = '#ff9b3d'; ctx.font = `${34 * scale}px Creepster, cursive`; ctx.fillText('Chasseur de monstres', vw / 2, 58 * scale);
-      ctx.fillStyle = 'white'; ctx.font = `bold ${16 * scale}px Nunito, sans-serif`; ctx.fillText('Halloween 2026 · 15/15 monstres', vw / 2, 86 * scale);
-      ctx.font = `${34 * scale}px sans-serif`; ctx.fillText('🎃  👻  🦇  🕷️  💀  🧛', vw / 2, vh - 42 * scale);
-      photoBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', .92));
-      stopPhotoStream(); photoVideo.style.display = 'none'; canvas.style.display = 'block';
-      takePhotoBtn.hidden = true; sharePhotoBtn.hidden = false;
+      if (!photoStream) return;
+      takePhotoBtn.disabled = true;
+      takePhotoBtn.textContent = '✨ Création de la photo…';
+
+      try {
+        const track = photoStream.getVideoTracks()[0];
+        let source = null;
+        let sourceWidth = 0;
+        let sourceHeight = 0;
+
+        // Sur Chrome/Android, ImageCapture récupère une vraie photo du capteur,
+        // souvent bien plus détaillée qu'une simple capture de l'aperçu vidéo.
+        if ('ImageCapture' in window) {
+          try {
+            const imageCapture = new ImageCapture(track);
+            let photoSettings = {};
+            const photoCapabilities = await imageCapture.getPhotoCapabilities?.();
+            if (photoCapabilities?.imageWidth?.max) photoSettings.imageWidth = photoCapabilities.imageWidth.max;
+            if (photoCapabilities?.imageHeight?.max) photoSettings.imageHeight = photoCapabilities.imageHeight.max;
+            const rawBlob = await imageCapture.takePhoto(photoSettings);
+            source = await createImageBitmap(rawBlob, { imageOrientation: 'from-image' });
+            sourceWidth = source.width;
+            sourceHeight = source.height;
+          } catch (error) {
+            console.info('Photo capteur HD indisponible, utilisation de la vidéo', error);
+          }
+        }
+
+        // Compatibilité iPhone/Safari et appareils ne supportant pas ImageCapture.
+        if (!source) {
+          source = photoVideo;
+          sourceWidth = photoVideo.videoWidth;
+          sourceHeight = photoVideo.videoHeight;
+        }
+        if (!sourceWidth || !sourceHeight) throw new Error('Image caméra vide');
+
+        // Limite très élevée pour conserver une excellente qualité sans faire
+        // planter les navigateurs mobiles avec un canvas démesuré.
+        const MAX_LONG_SIDE = 4096;
+        const ratio = Math.min(1, MAX_LONG_SIDE / Math.max(sourceWidth, sourceHeight));
+        const outputWidth = Math.max(1, Math.round(sourceWidth * ratio));
+        const outputHeight = Math.max(1, Math.round(sourceHeight * ratio));
+
+        const canvas = photoCanvas;
+        const ctx = canvas.getContext('2d', { alpha: false });
+        canvas.width = outputWidth;
+        canvas.height = outputHeight;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+
+        // Effet miroir identique à l'aperçu selfie.
+        ctx.save();
+        ctx.translate(outputWidth, 0);
+        ctx.scale(-1, 1);
+        ctx.drawImage(source, 0, 0, outputWidth, outputHeight);
+        ctx.restore();
+        source.close?.();
+
+        // Cadre vectoriel dessiné à la résolution finale.
+        const scale = Math.max(1, outputWidth / 900);
+        const border = Math.max(12, Math.round(16 * scale));
+        ctx.strokeStyle = 'rgba(255,138,43,.96)';
+        ctx.lineWidth = border;
+        ctx.strokeRect(border / 2, border / 2, outputWidth - border, outputHeight - border);
+
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'alphabetic';
+        ctx.shadowColor = 'rgba(0,0,0,.95)';
+        ctx.shadowBlur = 10 * scale;
+        ctx.shadowOffsetY = 3 * scale;
+
+        ctx.fillStyle = '#ff9b3d';
+        ctx.font = `${Math.round(48 * scale)}px Creepster, cursive`;
+        ctx.fillText('Chasseur de monstres', outputWidth / 2, 78 * scale);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `800 ${Math.round(21 * scale)}px Nunito, sans-serif`;
+        ctx.fillText('Halloween 2026 · 15/15 monstres', outputWidth / 2, 112 * scale);
+
+        ctx.font = `${Math.round(45 * scale)}px sans-serif`;
+        ctx.fillText('🎃  👻  🦇  🕷️  💀  🧛', outputWidth / 2, outputHeight - 54 * scale);
+
+        photoBlob = await new Promise((resolve, reject) => {
+          canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Export impossible')), 'image/jpeg', 0.98);
+        });
+
+        stopPhotoStream();
+        photoVideo.style.display = 'none';
+        canvas.style.display = 'block';
+        takePhotoBtn.hidden = true;
+        sharePhotoBtn.hidden = false;
+        showToast(`Photo HD créée : ${outputWidth} × ${outputHeight}`);
+      } catch (error) {
+        console.warn('Création de la photo impossible', error);
+        showToast('Impossible de créer la photo. Réessaie.');
+        takePhotoBtn.disabled = false;
+        takePhotoBtn.textContent = '📷 Prendre la photo HD';
+      }
     }
 
     async function shareSouvenirPhoto() {
