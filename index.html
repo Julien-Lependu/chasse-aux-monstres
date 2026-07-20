@@ -958,30 +958,108 @@
       }
     }
 
-    #resetBtn {
+    /* ---- Mode organisateur caché ---- */
+    #gameTitle {
+      position: relative;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: none;
+    }
+
+    #gameTitle::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -6px;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--toxic);
+      box-shadow: 0 0 10px rgba(143, 233, 79, .85);
+      transform: scaleX(0);
+      transform-origin: left center;
+      opacity: 0;
+    }
+
+    #gameTitle.admin-hold::after {
+      opacity: 1;
+      animation: adminHoldProgress 5s linear forwards;
+    }
+
+    @keyframes adminHoldProgress {
+      from { transform: scaleX(0); }
+      to { transform: scaleX(1); }
+    }
+
+    .admin-overlay {
       position: fixed;
-      bottom: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 9999;
+      inset: 0;
+      z-index: 12000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(7, 3, 15, .86);
+      backdrop-filter: blur(7px);
+    }
 
-      padding: 10px 18px;
-      border: none;
-      border-radius: 25px;
+    .admin-overlay.show {
+      display: flex;
+    }
 
-      background: #d32f2f;
-      color: white;
-      font-weight: bold;
+    .admin-card {
+      width: min(90vw, 390px);
+      padding: 24px;
+      border-radius: 22px;
+      border: 2px solid var(--toxic);
+      background: linear-gradient(160deg, #2d1b4e, #120a22);
+      box-shadow: 0 18px 55px rgba(0,0,0,.6), 0 0 28px rgba(143,233,79,.25);
+      text-align: center;
+    }
+
+    .admin-card h2 {
+      margin: 0 0 8px;
+      font-family: 'Creepster', cursive;
+      font-size: 32px;
+      font-weight: 400;
+      color: var(--toxic);
+    }
+
+    .admin-card p {
+      margin: 0 0 18px;
+      color: #c9bde0;
+      font-size: 14px;
+    }
+
+    .admin-actions {
+      display: grid;
+      gap: 10px;
+    }
+
+    .admin-actions button {
+      width: 100%;
+      border: 0;
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-family: 'Nunito', sans-serif;
       font-size: 16px;
+      font-weight: 900;
+      cursor: pointer;
+    }
 
-      box-shadow: 0 4px 10px rgba(0, 0, 0, .3);
+    .admin-reset {
+      background: #d32f2f;
+      color: #fff;
+      box-shadow: 0 5px 0 #7f1717;
+    }
+
+    .admin-close {
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      border: 1px solid rgba(255,255,255,.25) !important;
     }
   </style>
 </head>
-<button id="resetBtn" onclick="resetGame()">
-  🔄 Réinitialiser la partie
-</button>
-
 <body>
 
   <div class="permission-blocker" id="blocker">
@@ -991,7 +1069,7 @@
   </div>
 
   <header>
-    <h1>Chasse aux <span>Monstres</span></h1>
+    <h1 id="gameTitle">Chasse aux <span>Monstres</span></h1>
     <div class="counter">🎃 <b id="caughtCount">0</b>/<span id="totalCount">15</span></div>
   </header>
 
@@ -1033,6 +1111,17 @@
   </div>
 
   <div class="toast" id="toast"></div>
+
+  <div class="admin-overlay" id="adminOverlay" aria-hidden="true">
+    <div class="admin-card" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+      <h2 id="adminTitle">Mode organisateur</h2>
+      <p>Tu peux réinitialiser toute la progression enregistrée sur ce téléphone.</p>
+      <div class="admin-actions">
+        <button class="admin-reset" id="adminResetBtn">🔄 Réinitialiser la partie</button>
+        <button class="admin-close" id="adminCloseBtn">✕ Fermer</button>
+      </div>
+    </div>
+  </div>
 
   <div class="capture-celebration" id="captureCelebration" aria-hidden="true">
     <div class="capture-celebration-card">
@@ -1112,11 +1201,9 @@
 
     ];
     function resetGame() {
-      if (!confirm("Réinitialiser toute la partie ?")) return;
+      if (!confirm("Réinitialiser toute la partie ? Tous les monstres capturés seront perdus.")) return;
 
-      localStorage.clear(); // ou removeItem("halloween_hunt_caught_v1")
-
-      alert("La partie a été réinitialisée !");
+      localStorage.removeItem("halloween_hunt_caught_v1");
       location.reload();
     }
     // Générateur pseudo-aléatoire fixe : tous les téléphones obtiennent
@@ -1790,6 +1877,51 @@
         { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
       );
     }
+
+    // ---- Mode organisateur : appui long de 5 secondes sur le titre ----
+    const gameTitle = document.getElementById('gameTitle');
+    const adminOverlay = document.getElementById('adminOverlay');
+    const adminResetBtn = document.getElementById('adminResetBtn');
+    const adminCloseBtn = document.getElementById('adminCloseBtn');
+    let adminHoldTimer = null;
+
+    function cancelAdminHold() {
+      clearTimeout(adminHoldTimer);
+      adminHoldTimer = null;
+      gameTitle.classList.remove('admin-hold');
+    }
+
+    function openAdminMode() {
+      cancelAdminHold();
+      vibrate([120, 80, 220]);
+      adminOverlay.classList.add('show');
+      adminOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeAdminMode() {
+      adminOverlay.classList.remove('show');
+      adminOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    function startAdminHold(event) {
+      if (event.type === 'mousedown' && event.button !== 0) return;
+      event.preventDefault();
+      cancelAdminHold();
+      gameTitle.classList.add('admin-hold');
+      adminHoldTimer = setTimeout(openAdminMode, 5000);
+    }
+
+    gameTitle.addEventListener('pointerdown', startAdminHold);
+    gameTitle.addEventListener('pointerup', cancelAdminHold);
+    gameTitle.addEventListener('pointercancel', cancelAdminHold);
+    gameTitle.addEventListener('pointerleave', cancelAdminHold);
+    gameTitle.addEventListener('contextmenu', event => event.preventDefault());
+
+    adminResetBtn.addEventListener('click', resetGame);
+    adminCloseBtn.addEventListener('click', closeAdminMode);
+    adminOverlay.addEventListener('click', event => {
+      if (event.target === adminOverlay) closeAdminMode();
+    });
 
     document.getElementById('startBtn').addEventListener('click', startTracking);
   </script>
