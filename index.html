@@ -704,14 +704,16 @@
       scrollbar-width: none;
     }
 
-    .photo-theme-picker::-webkit-scrollbar { display: none; }
+    .photo-theme-picker::-webkit-scrollbar {
+      display: none;
+    }
 
     .photo-theme-btn {
       flex: 0 0 auto;
-      border: 1px solid rgba(255,255,255,.3);
+      border: 1px solid rgba(255, 255, 255, .3);
       border-radius: 999px;
       padding: 9px 12px;
-      background: rgba(255,255,255,.12);
+      background: rgba(255, 255, 255, .12);
       color: white;
       font-weight: 900;
       font-size: 13px;
@@ -721,56 +723,10 @@
       background: var(--toxic);
       color: #12210a;
       border-color: var(--toxic-glow);
-      box-shadow: 0 0 14px rgba(143,233,79,.5);
+      box-shadow: 0 0 14px rgba(143, 233, 79, .5);
     }
 
 
-
-    /* ---- Filtres visage simples et fiables ---- */
-    .photo-filter-preview {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-    }
-
-    .photo-filter-picker {
-      position: absolute;
-      left: 10px;
-      right: 10px;
-      bottom: calc(132px + env(safe-area-inset-bottom));
-      z-index: 5;
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 8px;
-      border-radius: 16px;
-      background: rgba(5, 2, 12, .78);
-      backdrop-filter: blur(8px);
-      scrollbar-width: none;
-    }
-
-    .photo-filter-picker::-webkit-scrollbar { display: none; }
-
-    .photo-filter-btn {
-      flex: 0 0 auto;
-      border: 1px solid rgba(255,255,255,.3);
-      border-radius: 999px;
-      padding: 9px 12px;
-      background: rgba(255,255,255,.12);
-      color: white;
-      font-weight: 900;
-      font-size: 13px;
-    }
-
-    .photo-filter-btn.active {
-      background: var(--pumpkin);
-      color: #321200;
-      border-color: #ffc17e;
-      box-shadow: 0 0 14px rgba(255,138,43,.5);
-    }
 
     .photo-theme-picker {
       bottom: calc(78px + env(safe-area-inset-bottom));
@@ -1082,8 +1038,13 @@
     }
 
     @keyframes adminHoldProgress {
-      from { transform: scaleX(0); }
-      to { transform: scaleX(1); }
+      from {
+        transform: scaleX(0);
+      }
+
+      to {
+        transform: scaleX(1);
+      }
     }
 
     .admin-overlay {
@@ -1108,7 +1069,7 @@
       border-radius: 22px;
       border: 2px solid var(--toxic);
       background: linear-gradient(160deg, #2d1b4e, #120a22);
-      box-shadow: 0 18px 55px rgba(0,0,0,.6), 0 0 28px rgba(143,233,79,.25);
+      box-shadow: 0 18px 55px rgba(0, 0, 0, .6), 0 0 28px rgba(143, 233, 79, .25);
       text-align: center;
     }
 
@@ -1149,12 +1110,13 @@
     }
 
     .admin-close {
-      background: rgba(255,255,255,.12);
+      background: rgba(255, 255, 255, .12);
       color: #fff;
-      border: 1px solid rgba(255,255,255,.25) !important;
+      border: 1px solid rgba(255, 255, 255, .25) !important;
     }
   </style>
 </head>
+
 <body>
 
   <div class="permission-blocker" id="blocker">
@@ -1240,18 +1202,10 @@
   <div class="photo-overlay" id="photoOverlay" aria-hidden="true">
     <video id="photoVideo" autoplay muted playsinline></video>
     <canvas id="photoCanvas"></canvas>
-    <canvas class="photo-filter-preview" id="photoFilterPreview" aria-hidden="true"></canvas>
     <div class="photo-frame"></div>
     <div class="photo-title">Chasseur de monstres<br><small
         style="font-family:Nunito;font-size:16px;color:white">Halloween 2026 · 15/15</small></div>
     <div class="photo-monsters">🎃 👻 🦇 🕷️ 💀 🧛</div>
-    <div class="photo-filter-picker" id="photoFilterPicker" aria-label="Choisir un filtre visage">
-      <button class="photo-filter-btn active" data-filter="none">🙂 Sans filtre</button>
-      <button class="photo-filter-btn" data-filter="vampire">🧛 Vampire</button>
-      <button class="photo-filter-btn" data-filter="mummy">🧻 Momie</button>
-      <button class="photo-filter-btn" data-filter="demon">😈 Démon</button>
-      <button class="photo-filter-btn" data-filter="pumpkin">🎃 Citrouille</button>
-    </div>
     <div class="photo-theme-picker" id="photoThemePicker" aria-label="Choisir un décor">
       <button class="photo-theme-btn active" data-theme="pumpkin">🎃 Citrouilles</button>
       <button class="photo-theme-btn" data-theme="ghost">👻 Fantômes</button>
@@ -1286,10 +1240,25 @@
 
     // Parc de la Solitude : contour relevé sur place.
     const PARK_POLYGON = [
-      [47.89085976504707, 1.8242606138859552],
-      [47.89089034024769, 1.8243504678835756],
-      [47.890811204397224, 1.824405453165701],
-      [47.89078242769433, 1.8243169402725228],
+      [47.881108626967325, 1.825022973099816],
+      [47.880999525544425, 1.825198406717137],
+      [47.880907537891694, 1.825274959568332],
+      [47.880821967835494, 1.8253387536109942],
+      [47.880768486478615, 1.8253610815259258],
+      [47.88069147322772, 1.8254057373557897],
+      [47.88061445986234, 1.8255109975261825],
+      [47.88051819299459, 1.8257183281648348],
+      [47.88047540766263, 1.8257247075691008],
+      [47.88039411543455, 1.8257119487605686],
+      [47.880406951057985, 1.8255428945475136],
+      [47.880441179371616, 1.8253483227173932],
+      [47.880377001265, 1.8252111655256695],
+      [47.8804989395996, 1.8251824582064717],
+      [47.880657245079476, 1.8250899568446113],
+      [47.880620877647154, 1.8251090950574103],
+      [47.880759929456396, 1.8249464202486214],
+      [47.88087544913717, 1.8248634879931602],
+      [47.8809866900678, 1.8247454690142348],
 
     ];
 
@@ -1836,17 +1805,13 @@
     const photoOverlay = document.getElementById('photoOverlay');
     const photoVideo = document.getElementById('photoVideo');
     const photoCanvas = document.getElementById('photoCanvas');
-    const photoFilterPreview = document.getElementById('photoFilterPreview');
     const openPhotoBtn = document.getElementById('openPhotoBtn');
     const closePhotoBtn = document.getElementById('closePhotoBtn');
     const takePhotoBtn = document.getElementById('takePhotoBtn');
     const sharePhotoBtn = document.getElementById('sharePhotoBtn');
     const retakePhotoBtn = document.getElementById('retakePhotoBtn');
     const photoThemeButtons = [...document.querySelectorAll('.photo-theme-btn')];
-    const photoFilterButtons = [...document.querySelectorAll('.photo-filter-btn')];
     let selectedPhotoTheme = 'pumpkin';
-    let selectedPhotoFilter = 'none';
-    let filterPreviewFrame = null;
     let rawPhotoBlob = null;
 
     async function openPhotoBooth() {
@@ -1889,7 +1854,6 @@
 
         photoVideo.srcObject = photoStream;
         await photoVideo.play();
-        startFilterPreview();
         await new Promise(resolve => {
           if (photoVideo.readyState >= 2 && photoVideo.videoWidth) return resolve();
           photoVideo.addEventListener('loadedmetadata', resolve, { once: true });
@@ -1911,167 +1875,11 @@
 
     function closePhotoBooth() {
       stopPhotoStream();
-      stopFilterPreview();
       photoOverlay.classList.remove('show');
       photoOverlay.setAttribute('aria-hidden', 'true');
-    }
-
-    function drawFaceFilter(ctx, width, height, filter, preview = false) {
-      if (!filter || filter === 'none') return;
-
-      const portrait = height >= width;
-      const faceW = portrait ? width * .54 : height * .50;
-      const faceH = faceW * 1.22;
-      const cx = width * .5;
-      const cy = height * (portrait ? .43 : .46);
-      const left = cx - faceW / 2;
-      const top = cy - faceH / 2;
-      const line = Math.max(3, faceW * .018);
-
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.shadowColor = 'rgba(0,0,0,.7)';
-      ctx.shadowBlur = preview ? 7 : Math.max(8, faceW * .035);
-
-      if (filter === 'vampire') {
-        ctx.fillStyle = 'rgba(225,235,246,.23)';
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, faceW*.43, faceH*.46, 0, 0, Math.PI*2);
-        ctx.fill();
-
-        ctx.fillStyle = 'rgba(25,8,35,.92)';
-        ctx.beginPath();
-        ctx.moveTo(left + faceW*.12, top + faceH*.20);
-        ctx.quadraticCurveTo(cx, top - faceH*.12, left + faceW*.88, top + faceH*.20);
-        ctx.lineTo(cx, top + faceH*.34);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.fillStyle = '#ff243f';
-        for (const ex of [cx-faceW*.16, cx+faceW*.16]) {
-          ctx.beginPath(); ctx.ellipse(ex, cy-faceH*.09, faceW*.055, faceH*.027, 0, 0, Math.PI*2); ctx.fill();
-        }
-        ctx.fillStyle = '#fff';
-        const mouthY = cy + faceH*.18;
-        for (const fx of [cx-faceW*.11, cx+faceW*.11]) {
-          ctx.beginPath();
-          ctx.moveTo(fx-faceW*.035, mouthY);
-          ctx.lineTo(fx+faceW*.035, mouthY);
-          ctx.lineTo(fx, mouthY+faceH*.13);
-          ctx.closePath(); ctx.fill();
-        }
-      } else if (filter === 'mummy') {
-        ctx.save();
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, faceW*.47, faceH*.49, 0, 0, Math.PI*2);
-        ctx.clip();
-        ctx.fillStyle = 'rgba(230,218,180,.34)';
-        ctx.fillRect(left, top, faceW, faceH);
-        const strips = 9;
-        for (let i=0;i<strips;i++) {
-          const y = top + i * faceH/(strips-1);
-          ctx.strokeStyle = i%2 ? 'rgba(245,235,203,.92)' : 'rgba(210,195,155,.92)';
-          ctx.lineWidth = faceH*.105;
-          ctx.beginPath();
-          ctx.moveTo(left-faceW*.08, y + (i%2 ? faceH*.025 : 0));
-          ctx.lineTo(left+faceW*1.08, y - (i%3-1)*faceH*.035);
-          ctx.stroke();
-        }
-        ctx.fillStyle = 'rgba(18,10,25,.92)';
-        ctx.beginPath();
-        ctx.roundRect(left+faceW*.15, cy-faceH*.14, faceW*.70, faceH*.20, faceH*.08);
-        ctx.fill();
-        ctx.fillStyle = '#96ff5d';
-        for (const ex of [cx-faceW*.15,cx+faceW*.15]) {
-          ctx.beginPath(); ctx.arc(ex, cy-faceH*.045, faceW*.035, 0, Math.PI*2); ctx.fill();
-        }
-        ctx.restore();
-      } else if (filter === 'demon') {
-        ctx.fillStyle = 'rgba(175,20,40,.22)';
-        ctx.beginPath(); ctx.ellipse(cx, cy, faceW*.44, faceH*.46, 0, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#b51631';
-        for (const side of [-1,1]) {
-          ctx.beginPath();
-          ctx.moveTo(cx+side*faceW*.23, top+faceH*.14);
-          ctx.quadraticCurveTo(cx+side*faceW*.50, top-faceH*.18, cx+side*faceW*.38, top+faceH*.28);
-          ctx.closePath(); ctx.fill();
-        }
-        ctx.strokeStyle = '#ff233f'; ctx.lineWidth = line*1.4;
-        for (const side of [-1,1]) {
-          ctx.beginPath();
-          ctx.moveTo(cx+side*faceW*.25, cy-faceH*.14);
-          ctx.lineTo(cx+side*faceW*.08, cy-faceH*.08);
-          ctx.stroke();
-        }
-        ctx.fillStyle = '#ffe9d5';
-        const y=cy+faceH*.19;
-        for (const side of [-1,1]) {
-          const x=cx+side*faceW*.11;
-          ctx.beginPath(); ctx.moveTo(x-faceW*.03,y); ctx.lineTo(x+faceW*.03,y); ctx.lineTo(x,y+faceH*.10); ctx.closePath(); ctx.fill();
-        }
-      } else if (filter === 'pumpkin') {
-        ctx.fillStyle = 'rgba(255,120,20,.72)';
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, faceW*.48, faceH*.46, 0, 0, Math.PI*2);
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(120,45,0,.65)'; ctx.lineWidth = line;
-        for (let i=-2;i<=2;i++) {
-          ctx.beginPath(); ctx.ellipse(cx, cy, faceW*(.17+Math.abs(i)*.07), faceH*.45, 0, -Math.PI/2, Math.PI/2); ctx.stroke();
-        }
-        ctx.fillStyle = 'rgba(20,8,15,.88)';
-        for (const side of [-1,1]) {
-          const ex=cx+side*faceW*.16;
-          ctx.beginPath();
-          ctx.moveTo(ex-side*faceW*.10, cy-faceH*.12);
-          ctx.lineTo(ex+side*faceW*.08, cy-faceH*.17);
-          ctx.lineTo(ex+side*faceW*.05, cy-faceH*.02);
-          ctx.closePath(); ctx.fill();
-        }
-        ctx.beginPath();
-        ctx.moveTo(cx-faceW*.24, cy+faceH*.14);
-        for(let i=0;i<=8;i++){
-          const x=cx-faceW*.24+i*faceW*.06;
-          const y=cy+faceH*(i%2? .23:.14);
-          ctx.lineTo(x,y);
-        }
-        ctx.lineTo(cx+faceW*.24,cy+faceH*.14);
-        ctx.lineTo(cx+faceW*.18,cy+faceH*.29);
-        ctx.lineTo(cx-faceW*.18,cy+faceH*.29);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle='#4a8f2b';
-        ctx.fillRect(cx-faceW*.055,top-faceH*.03,faceW*.11,faceH*.15);
+      if (caught.size === MONSTERS.length) {
+        document.getElementById('winOverlay').classList.add('show');
       }
-      ctx.restore();
-    }
-
-    function resizeAndDrawFilterPreview() {
-      if (!photoOverlay.classList.contains('show') || photoVideo.style.display === 'none') return;
-      const rect = photoOverlay.getBoundingClientRect();
-      const dpr = Math.min(2, window.devicePixelRatio || 1);
-      const w = Math.max(1, Math.round(rect.width*dpr));
-      const h = Math.max(1, Math.round(rect.height*dpr));
-      if (photoFilterPreview.width !== w || photoFilterPreview.height !== h) {
-        photoFilterPreview.width=w; photoFilterPreview.height=h;
-      }
-      const ctx=photoFilterPreview.getContext('2d');
-      ctx.clearRect(0,0,w,h);
-      drawFaceFilter(ctx,w,h,selectedPhotoFilter,true);
-      filterPreviewFrame=requestAnimationFrame(resizeAndDrawFilterPreview);
-    }
-
-    function startFilterPreview() {
-      cancelAnimationFrame(filterPreviewFrame);
-      photoFilterPreview.style.display='block';
-      resizeAndDrawFilterPreview();
-    }
-
-    function stopFilterPreview() {
-      cancelAnimationFrame(filterPreviewFrame);
-      filterPreviewFrame=null;
-      const ctx=photoFilterPreview.getContext('2d');
-      ctx.clearRect(0,0,photoFilterPreview.width,photoFilterPreview.height);
-      photoFilterPreview.style.display='none';
     }
 
     function drawPhotoTheme(ctx, width, height, scale, theme) {
@@ -2155,7 +1963,6 @@
       const scale = Math.max(1, outputWidth / 900);
       ctx.textAlign = 'center';
       drawPhotoTheme(ctx, outputWidth, outputHeight, scale, selectedPhotoTheme);
-      drawFaceFilter(ctx, outputWidth, outputHeight, selectedPhotoFilter, false);
 
       const border = Math.max(12, Math.round(16 * scale));
       const borderColors = {
@@ -2224,7 +2031,6 @@
         }
 
         const size = await renderSouvenirFromRaw();
-        stopFilterPreview();
         stopPhotoStream();
         photoVideo.style.display = 'none';
         photoCanvas.style.display = 'block';
@@ -2264,7 +2070,6 @@
         });
         photoVideo.srcObject = photoStream;
         await photoVideo.play();
-        startFilterPreview();
         takePhotoBtn.disabled = false;
         takePhotoBtn.textContent = '📷 Prendre la photo HD';
       } catch (error) {
@@ -2303,20 +2108,6 @@
       });
     });
 
-
-    photoFilterButtons.forEach(button => {
-      button.addEventListener('click', async () => {
-        selectedPhotoFilter = button.dataset.filter;
-        photoFilterButtons.forEach(item => item.classList.toggle('active', item === button));
-        if (rawPhotoBlob) {
-          button.disabled = true;
-          try { await renderSouvenirFromRaw(); }
-          finally { button.disabled = false; }
-        } else {
-          startFilterPreview();
-        }
-      });
-    });
 
     function updateRadar(distance) {
       if (!Number.isFinite(distance)) {
