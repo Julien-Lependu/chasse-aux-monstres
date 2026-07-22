@@ -1304,10 +1304,25 @@
 
     // Parc de la Solitude : contour relevé sur place.
     const PARK_POLYGON = [
-      [47.890791786365504, 1.8243153520324564],
-      [47.890824609785, 1.824292553255888],
-      [47.89084079666917, 1.8243777133918926],
-      [47.89081112071101, 1.824402523825217],
+      [47.881108626967325, 1.825022973099816],
+      [47.880999525544425, 1.825198406717137],
+      [47.880907537891694, 1.825274959568332],
+      [47.880821967835494, 1.8253387536109942],
+      [47.880768486478615, 1.8253610815259258],
+      [47.88069147322772, 1.8254057373557897],
+      [47.88061445986234, 1.8255109975261825],
+      [47.88051819299459, 1.8257183281648348],
+      [47.88047540766263, 1.8257247075691008],
+      [47.88039411543455, 1.8257119487605686],
+      [47.880406951057985, 1.8255428945475136],
+      [47.880441179371616, 1.8253483227173932],
+      [47.880377001265, 1.8252111655256695],
+      [47.8804989395996, 1.8251824582064717],
+      [47.880657245079476, 1.8250899568446113],
+      [47.880620877647154, 1.8251090950574103],
+      [47.880759929456396, 1.8249464202486214],
+      [47.88087544913717, 1.8248634879931602],
+      [47.8809866900678, 1.8247454690142348],
 
     ];
 
@@ -1320,9 +1335,9 @@
 
     // Le radar commence à réagir à 25 m. La caméra est débloquée à 4 m.
     // Évite de descendre à 2 m : la précision GPS d'un téléphone peut varier.
-    const RADAR_RADIUS_M = 25;
-    const CAMERA_UNLOCK_RADIUS_M = 50;
-    const MIN_DISTANCE_BETWEEN_MONSTERS_M = 1; // Valeur basse pour le petit polygone de test
+    const RADAR_RADIUS_M = 10;
+    const CAMERA_UNLOCK_RADIUS_M = 5;
+    const MIN_DISTANCE_BETWEEN_MONSTERS_M = 20; // Valeur basse pour le petit polygone de test
 
     // Ajoute une petite anecdote/fait rigolo par monstre avec "fact" —
     // elle s'affiche à la capture et reste consultable dans le carnet du chasseur.
@@ -1639,7 +1654,7 @@
       captureCelebration.classList.add('show');
       captureCelebration.setAttribute('aria-hidden', 'false');
 
-      const displayDuration = monster.fact ? 10000 : 2600;
+      const displayDuration = monster.fact ? 9000 : 2600;
       celebrationTimer = setTimeout(() => {
         captureCelebration.classList.remove('show');
         captureCelebration.setAttribute('aria-hidden', 'true');
