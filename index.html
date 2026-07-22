@@ -764,6 +764,7 @@
       background: rgba(143, 233, 79, 0.14);
       border: 1.5px solid var(--toxic);
       box-shadow: 0 0 10px rgba(143, 233, 79, 0.35) inset;
+      cursor: pointer;
     }
 
     /* ---- Win overlay ---- */
@@ -982,6 +983,96 @@
       font-weight: 900;
     }
 
+    .celebration-fact {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, .3);
+      border: 1px dashed rgba(255, 255, 255, .25);
+      color: #e8def5;
+      font-size: 13.5px;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    .celebration-fact:empty {
+      display: none;
+    }
+
+    /* ---- Carnet du chasseur (fiche consultable) ---- */
+    .monster-card-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 260;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: rgba(7, 3, 15, .82);
+      backdrop-filter: blur(7px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .2s ease, visibility .2s ease;
+    }
+
+    .monster-card-overlay.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .monster-card {
+      position: relative;
+      width: min(88vw, 380px);
+      padding: 30px 22px 26px;
+      border: 3px solid var(--toxic);
+      border-radius: 26px;
+      text-align: center;
+      color: white;
+      background: linear-gradient(160deg, rgba(45, 27, 78, .98), rgba(18, 7, 33, .98));
+      box-shadow: 0 20px 70px rgba(0, 0, 0, .65), 0 0 30px rgba(143, 233, 79, .3);
+    }
+
+    .monster-card-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 32px;
+      height: 32px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .12);
+      color: white;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .monster-card-emoji {
+      display: block;
+      font-size: clamp(64px, 20vw, 92px);
+      line-height: 1;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 0 18px rgba(143, 233, 79, .5));
+    }
+
+    .monster-card-name {
+      font-family: 'Creepster', cursive;
+      font-size: clamp(26px, 8vw, 34px);
+      color: var(--pumpkin);
+      text-shadow: 0 0 14px rgba(255, 138, 43, .5);
+      margin-bottom: 12px;
+    }
+
+    .monster-card-fact {
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: rgba(0, 0, 0, .3);
+      border: 1px dashed rgba(255, 255, 255, .25);
+      color: #e8def5;
+      font-size: 14px;
+      line-height: 1.5;
+      text-align: left;
+    }
+
     .celebration-particle {
       position: absolute;
       left: 50%;
@@ -1187,6 +1278,16 @@
       <div class="celebration-title">Monstre capturé !</div>
       <div class="celebration-name" id="celebrationName"></div>
       <div class="celebration-progress" id="celebrationProgress"></div>
+      <div class="celebration-fact" id="celebrationFact"></div>
+    </div>
+  </div>
+
+  <div class="monster-card-overlay" id="monsterCardOverlay" aria-hidden="true">
+    <div class="monster-card">
+      <button class="monster-card-close" id="monsterCardCloseBtn" aria-label="Fermer">✕</button>
+      <span class="monster-card-emoji" id="monsterCardEmoji">👻</span>
+      <div class="monster-card-name" id="monsterCardName"></div>
+      <div class="monster-card-fact" id="monsterCardFact"></div>
     </div>
   </div>
 
@@ -1262,24 +1363,98 @@
 
     ];
 
+
     // Centre moyen du polygone, utilisé pour centrer la carte.
     const CENTER = {
       lat: PARK_POLYGON.reduce((sum, point) => sum + point[0], 0) / PARK_POLYGON.length,
       lng: PARK_POLYGON.reduce((sum, point) => sum + point[1], 0) / PARK_POLYGON.length
     };
 
-    // Le radar commence à réagir à 25 m. La caméra est débloquée à 5 m.
+    // Le radar commence à réagir à 25 m. La caméra est débloquée à 4 m.
     // Évite de descendre à 2 m : la précision GPS d'un téléphone peut varier.
     const RADAR_RADIUS_M = 25;
-    const CAMERA_UNLOCK_RADIUS_M = 5;
-    const MIN_DISTANCE_BETWEEN_MONSTERS_M = 1; // Valeur basse pour le petit polygone de test
+    const CAMERA_UNLOCK_RADIUS_M = 4;
+    const MIN_DISTANCE_BETWEEN_MONSTERS_M = 15; // Valeur basse pour le petit polygone de test
 
+    // Ajoute une petite anecdote/fait rigolo par monstre avec "fact" —
+    // elle s'affiche à la capture et reste consultable dans le carnet du chasseur.
     const MONSTER_TEMPLATES = [
-      { name: "Citrouille Grognon", emoji: "🎃" },
-      { name: "Fantôme Farceur", emoji: "👻" },
-
-    ];
-    function resetGame() {
+      {
+        name: "Citrouille Grognon",
+        emoji: "🎃",
+        fact: "Elle boude tous les ans parce qu'on la découpe juste avant la fête. Sa spécialité : faire peur avec un sourire à moitié édenté."
+      },
+      {
+        name: "Fantôme Farceur",
+        emoji: "👻",
+        fact: "Il adore se cacher derrière les arbres pour surprendre les passants, puis s'excuse toujours en flottant très vite ailleurs."
+      },
+      {
+        name: "Squelette Rigolo",
+        emoji: "💀",
+        fact: "Il perd un os presque tous les jours. Heureusement, il sait toujours où le retrouver."
+      },
+      {
+        name: "Vampire Gourmand",
+        emoji: "🧛",
+        fact: "Il préfère largement le jus de tomate aux histoires de vampires… mais il ne veut pas que ça se sache."
+      },
+      {
+        name: "Momie Pressée",
+        emoji: "🧻",
+        fact: "Elle passe son temps à remettre ses bandelettes qui se déroulent dès qu'elle court."
+      },
+      {
+        name: "Sorcière Maladroite",
+        emoji: "🧙",
+        fact: "Elle rate une potion sur deux… mais ses explosions sont toujours spectaculaires."
+      },
+      {
+        name: "Diablotin Malicieux",
+        emoji: "😈",
+        fact: "Son plus grand plaisir est de cacher les bonbons des autres monstres."
+      },
+      {
+        name: "Zombie Somnolent",
+        emoji: "🧟",
+        fact: "Il avance très lentement car il s'endort souvent en marchant."
+      },
+      {
+        name: "Araignée Géante",
+        emoji: "🕷️",
+        fact: "Elle tisse des toiles tellement solides que même les fantômes restent coincés dedans."
+      },
+      {
+        name: "Chauve-Souris Acrobate",
+        emoji: "🦇",
+        fact: "Elle adore faire des loopings au-dessus des visiteurs pendant la nuit."
+      },
+      {
+        name: "Loup-Garou Timide",
+        emoji: "🐺",
+        fact: "Il rougit dès qu'on le regarde, même pendant la pleine lune."
+      },
+      {
+        name: "Monstre Gluant",
+        emoji: "🟢",
+        fact: "Il laisse des traces de bave partout où il passe… les limaces en sont jalouses."
+      },
+      {
+        name: "Œil Volant",
+        emoji: "👁️",
+        fact: "Il observe tout le monde en silence, mais il est incapable de garder un secret."
+      },
+      {
+        name: "Clown Maudit",
+        emoji: "🤡",
+        fact: "Ses ballons éclatent toujours au pire moment… juste derrière toi."
+      },
+      {
+        name: "Le Sans-Visage",
+        emoji: "🎭",
+        fact: "Personne ne sait à quoi il ressemble réellement. Chaque personne voit un visage différent."
+      }
+    ]; function resetGame() {
       if (!confirm("Réinitialiser toute la partie ? Tous les monstres capturés seront perdus.")) return;
 
       localStorage.removeItem("halloween_hunt_caught_v1");
@@ -1365,6 +1540,7 @@
       id: "m" + index,
       name: monster.name,
       emoji: monster.emoji,
+      fact: monster.fact || '',
       lat: monsterPositions[index].lat,
       lng: monsterPositions[index].lng
     }));
@@ -1430,6 +1606,11 @@
         const slot = document.createElement('div');
         slot.className = 'bag-slot' + (caught.has(m.id) ? ' filled' : '');
         slot.textContent = caught.has(m.id) ? m.emoji : '❔';
+        if (caught.has(m.id)) {
+          slot.setAttribute('role', 'button');
+          slot.setAttribute('aria-label', `Revoir la fiche de ${m.name}`);
+          slot.addEventListener('click', () => openMonsterCard(m));
+        }
         bagEl.appendChild(slot);
       });
       document.getElementById('caughtCount').textContent = caught.size;
@@ -1438,6 +1619,30 @@
       }
     }
     renderBag();
+
+    // ---- Carnet du chasseur (fiche consultable après capture) ----
+    const monsterCardOverlay = document.getElementById('monsterCardOverlay');
+    const monsterCardEmoji = document.getElementById('monsterCardEmoji');
+    const monsterCardName = document.getElementById('monsterCardName');
+    const monsterCardFact = document.getElementById('monsterCardFact');
+
+    function openMonsterCard(monster) {
+      monsterCardEmoji.textContent = monster.emoji;
+      monsterCardName.textContent = monster.name;
+      monsterCardFact.textContent = monster.fact || 'Ce monstre garde ses secrets…';
+      monsterCardOverlay.classList.add('show');
+      monsterCardOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeMonsterCard() {
+      monsterCardOverlay.classList.remove('show');
+      monsterCardOverlay.setAttribute('aria-hidden', 'true');
+    }
+
+    document.getElementById('monsterCardCloseBtn').addEventListener('click', closeMonsterCard);
+    monsterCardOverlay.addEventListener('click', (e) => {
+      if (e.target === monsterCardOverlay) closeMonsterCard();
+    });
 
     // ---- Toast ----
     let toastTimer;
@@ -1456,6 +1661,7 @@
     const celebrationEmoji = document.getElementById('celebrationEmoji');
     const celebrationName = document.getElementById('celebrationName');
     const celebrationProgress = document.getElementById('celebrationProgress');
+    const celebrationFact = document.getElementById('celebrationFact');
     let celebrationTimer = null;
 
     function showCaptureCelebration(monster) {
@@ -1464,6 +1670,7 @@
       celebrationEmoji.textContent = monster.emoji;
       celebrationName.textContent = `${monster.name} rejoint ton sac !`;
       celebrationProgress.textContent = `${caught.size} monstre${caught.size > 1 ? 's' : ''} sur ${MONSTERS.length}`;
+      celebrationFact.textContent = monster.fact || '';
 
       const symbols = ['✨', '⭐', '🎃', '🍬', '💥', '🌟'];
       for (let i = 0; i < 18; i++) {
@@ -1484,11 +1691,18 @@
       captureCelebration.classList.add('show');
       captureCelebration.setAttribute('aria-hidden', 'false');
 
+      const displayDuration = monster.fact ? 4400 : 2600;
       celebrationTimer = setTimeout(() => {
         captureCelebration.classList.remove('show');
         captureCelebration.setAttribute('aria-hidden', 'true');
-      }, 2600);
+      }, displayDuration);
     }
+
+    captureCelebration.addEventListener('click', () => {
+      clearTimeout(celebrationTimer);
+      captureCelebration.classList.remove('show');
+      captureCelebration.setAttribute('aria-hidden', 'true');
+    });
 
     // ---- Radar, camera and capture logic ----
     const captureBtn = document.getElementById('captureBtn');
